@@ -4,81 +4,178 @@ import ShellLayout from '@/components/layout/ShellLayout';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { usePromptAnalyzer } from '@/hooks/usePromptAnalyzer';
+import { motion } from 'framer-motion';
+import Lottie from 'lottie-react';
+import botAnimation from '@/assets/ai-bot.json';
+import Image from 'next/image';
+import robotHead from '@/assets/robot-head.png'
 
 export default function PromptClarityAnalyzer() {
   const [prompt, setPrompt] = useState('');
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { analyze, result, loading } = usePromptAnalyzer();
 
-  const analyzePrompt = async () => {
-    setLoading(true);
-    setResult(null);
-    try {
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await response.json();
-      setResult(data);
-    } catch {
-      setResult({ error: 'Something went wrong.' });
-    } finally {
-      setLoading(false);
+  const handleAnalyze = () => {
+    if (prompt.trim()) {
+      analyze(prompt);
     }
   };
 
   return (
     <ShellLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-center">
+      <div className="relative">
+        <div className="absolute inset-0 w-24 h-24 bg-gradient-to-br from-pink-500 to-blue-500 rounded-full blur-2xl opacity-40"></div>
+
+        <Lottie
+          animationData={botAnimation}
+          loop
+          autoplay
+          className="w-24 h-24 mx-auto"
+        />
+      </div>
+
+      <div className="space-y-6 max-w-2xl mx-auto py-10">
+        <h1 className="text-3xl font-bold text-center tracking-tight">
           Prompt Clarity Analyzer
         </h1>
 
-        <Textarea
-          placeholder="Paste your AI agent prompt here..."
-          className="min-h-[120px]"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-        />
+        <div className="space-y-4">
+          <Textarea
+            placeholder="Paste your AI agent prompt here..."
+            className="min-h-[120px]"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
 
-        <Button onClick={analyzePrompt} disabled={loading || !prompt.trim()}>
-          {loading ? <Loader2 className="animate-spin" /> : 'Analyze'}
-        </Button>
+          <Button
+            onClick={handleAnalyze}
+            disabled={loading || !prompt.trim()}
+            className="w-full sm:w-fit transition-all duration-200 hover:scale-105 hover:bg-primary text-white font-semibold px-4 py-2 rounded-md"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                Analyzing...
+              </>
+            ) : (
+              'Analyze'
+            )}
+          </Button>
+        </div>
 
-        {result && (
+        {/* Loading Skeleton */}
+        {loading && (
           <Card>
-            <CardContent className="space-y-4">
-              {result.error && <p className="text-red-500">{result.error}</p>}
-              {result.clarityScore && (
-                <p>
-                  <strong>Clarity Score:</strong> {result.clarityScore}/100
-                </p>
-              )}
-              {result.ambiguities && (
-                <div>
-                  <strong>Ambiguities:</strong>
-                  <ul className="list-disc ml-6">
-                    {result.ambiguities.map((a: string, i: number) => (
-                      <li key={i}>{a}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {result.suggestions && (
-                <div>
-                  <strong>Suggestions for Improvement:</strong>
-                  <ul className="list-disc ml-6">
-                    {result.suggestions.map((s: string, i: number) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            <CardContent className="space-y-4 py-6">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
             </CardContent>
           </Card>
+        )}
+
+        {/* Empty state */}
+        {!loading && !result && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative"
+          >
+            <Card className="bg-white/90 backdrop-blur-md border border-slate-200 shadow-md transition hover:shadow-lg">
+              <CardContent className="text-center py-16 space-y-4">
+                <div className="flex justify-center">
+                  <Image
+                    src={robotHead}
+                    alt="Empty State Illustration"
+                    width={64}
+                    height={64}
+                    className="opacity-80"
+                  />
+                </div>
+                <h2 className="text-2xl font-semibold text-center text-gray-800">
+                  Welcome to Prompt Clarity Analyzer
+                </h2>
+                <p className="text-sm text-center text-muted-foreground mt-2">
+                  Paste your prompt above and click{' '}
+                  <span className="font-semibold text-primary">Analyze</span> to
+                  get a clarity score, detect ambiguity, and receive improvement
+                  suggestions — powered by GPT-4o.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Optional animated background bubble */}
+            <motion.div
+              animate={{ y: [0, -20, 0] }}
+              transition={{ repeat: Infinity, duration: 10 }}
+              className="absolute top-[-40px] right-[-40px] w-72 h-72 bg-indigo-100 rounded-full opacity-30 blur-3xl z-[-1]"
+            />
+          </motion.div>
+        )}
+
+        {/* Error */}
+        {!loading && result?.error && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-red-500">
+              <CardContent className="text-red-600 font-medium py-6 text-center">
+                {result.error}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Analysis Result */}
+        {!loading && result && !result.error && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-green-500">
+              <CardContent className="space-y-4">
+                <p className="text-green-700 font-semibold">
+                  Analysis complete ✅
+                </p>
+
+                {result.clarityScore && (
+                  <p>
+                    <strong>Clarity Score:</strong> {result.clarityScore}/100
+                  </p>
+                )}
+
+                {result.ambiguities?.length > 0 && (
+                  <div>
+                    <strong>Ambiguities:</strong>
+                    <ul className="list-disc ml-6">
+                      {result.ambiguities.map((a, i) => (
+                        <li key={i}>{a}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {result.suggestions?.length > 0 && (
+                  <div>
+                    <strong>Suggestions for Improvement:</strong>
+                    <ul className="list-disc ml-6">
+                      {result.suggestions.map((s, i) => (
+                        <li key={i}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
       </div>
     </ShellLayout>
