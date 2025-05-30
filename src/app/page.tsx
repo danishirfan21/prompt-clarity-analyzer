@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import Lottie from 'lottie-react';
 import botAnimation from '@/assets/ai-bot.json';
 import Image from 'next/image';
-import robotHead from '@/assets/robot-head.png'
+import robotHead from '@/assets/robot-head.png';
 
 export default function PromptClarityAnalyzer() {
   const [prompt, setPrompt] = useState('');
@@ -26,26 +26,26 @@ export default function PromptClarityAnalyzer() {
 
   return (
     <ShellLayout>
-      <div className="relative">
-        <div className="absolute inset-0 w-24 h-24 bg-gradient-to-br from-pink-500 to-blue-500 rounded-full blur-2xl opacity-40"></div>
-
+      {/* Hero Glow Logo */}
+      <div className="relative flex justify-center items-center h-32 mb-2 mt-6">
+        <div className="absolute w-32 h-32 bg-gradient-to-br from-pink-500 to-blue-500 rounded-full blur-2xl opacity-40 animate-pulse" />
         <Lottie
           animationData={botAnimation}
           loop
           autoplay
-          className="w-24 h-24 mx-auto"
+          className="w-24 h-24 relative z-10"
         />
       </div>
 
-      <div className="space-y-6 max-w-2xl mx-auto py-10">
-        <h1 className="text-3xl font-bold text-center tracking-tight">
+      <div className="space-y-6 max-w-2xl mx-auto py-6">
+        <h1 className="text-3xl font-bold text-center tracking-tight text-gray-900 dark:text-white">
           Prompt Clarity Analyzer
         </h1>
 
         <div className="space-y-4">
           <Textarea
             placeholder="Paste your AI agent prompt here..."
-            className="min-h-[120px]"
+            className="min-h-[120px] animate-pulse placeholder:italic"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
@@ -53,7 +53,7 @@ export default function PromptClarityAnalyzer() {
           <Button
             onClick={handleAnalyze}
             disabled={loading || !prompt.trim()}
-            className="w-full sm:w-fit transition-all duration-200 hover:scale-105 hover:bg-primary text-white font-semibold px-4 py-2 rounded-md"
+            className="w-full sm:w-fit transition-all duration-300 ease-in-out bg-gradient-to-br from-blue-500 to-purple-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-xl hover:scale-105 disabled:opacity-40"
           >
             {loading ? (
               <>
@@ -86,7 +86,7 @@ export default function PromptClarityAnalyzer() {
             transition={{ duration: 0.5 }}
             className="relative"
           >
-            <Card className="bg-white/90 backdrop-blur-md border border-slate-200 shadow-md transition hover:shadow-lg">
+            <Card className="bg-white/10 backdrop-blur-lg border border-white/10 shadow-xl transition hover:shadow-2xl hover:scale-[1.01]">
               <CardContent className="text-center py-16 space-y-4">
                 <div className="flex justify-center">
                   <Image
@@ -97,7 +97,7 @@ export default function PromptClarityAnalyzer() {
                     className="opacity-80"
                   />
                 </div>
-                <h2 className="text-2xl font-semibold text-center text-gray-800">
+                <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
                   Welcome to Prompt Clarity Analyzer
                 </h2>
                 <p className="text-sm text-center text-muted-foreground mt-2">
@@ -109,7 +109,7 @@ export default function PromptClarityAnalyzer() {
               </CardContent>
             </Card>
 
-            {/* Optional animated background bubble */}
+            {/* Animated background bubble */}
             <motion.div
               animate={{ y: [0, -20, 0] }}
               transition={{ repeat: Infinity, duration: 10 }}
