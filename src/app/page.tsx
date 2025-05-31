@@ -124,18 +124,20 @@ export default function PromptClarityAnalyzer() {
           <TypingHeading text="Prompt Clarity Analyzer" />
 
           <div className="space-y-4">
-            <Textarea
-              placeholder="Paste your AI agent prompt here..."
-              className="min-h-[120px] animate-pulse placeholder:italic"
-              value={visiblePrompt}
-              onChange={handlePromptTyping}
-            />
+            <div className="p-[1px] rounded-xl bg-gradient-to-br from-purple-400/50 to-pink-400/50">
+              <Textarea
+                placeholder="Paste your AI agent prompt here..."
+                className="min-h-[120px] bg-white/70 backdrop-blur-md text-gray-700 placeholder:italic w-full p-4 rounded-xl border-none outline-none"
+                value={visiblePrompt}
+                onChange={handlePromptTyping}
+              />
+            </div>
 
             <Button
               onClick={handleAnalyze}
               onMouseEnter={playHoverSound}
               disabled={loading || !prompt.trim()}
-              className="w-full sm:w-fit transition-all duration-300 ease-in-out bg-gradient-to-br from-blue-500 to-purple-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-xl hover:scale-105 disabled:opacity-40"
+              className="relative overflow-hidden w-full sm:w-fit px-6 py-2 rounded-lg font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600 hover:from-purple-500 hover:to-pink-500 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out before:absolute before:inset-0 before:bg-white/20 before:blur-lg before:opacity-0 hover:before:opacity-10"
             >
               {loading ? (
                 <>
@@ -150,14 +152,9 @@ export default function PromptClarityAnalyzer() {
 
           {/* Loading Skeleton */}
           {loading && (
-            <Card>
-              <CardContent className="space-y-4 py-6">
-                <Skeleton className="h-4 w-1/3" />
-                <Skeleton className="h-3 w-2/3" />
-                <Skeleton className="h-3 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </CardContent>
-            </Card>
+            <div className="text-center text-sm text-gray-500 italic animate-pulse">
+              🤖 Thinking about your prompt...
+            </div>
           )}
 
           {/* Empty state */}
@@ -170,15 +167,17 @@ export default function PromptClarityAnalyzer() {
             >
               <Card className="bg-white/10 backdrop-blur-lg border border-white/10 shadow-xl transition hover:shadow-2xl hover:scale-[1.01]">
                 <CardContent className="text-center py-16 space-y-4">
-                  <div className="flex justify-center">
+                  <div className="relative flex justify-center items-center">
+                    <div className="absolute w-20 h-20 rounded-full bg-purple-300 blur-3xl opacity-20 animate-ping"></div>
                     <Image
                       src={robotHead}
-                      alt="Empty State Illustration"
+                      alt="Robot"
                       width={64}
                       height={64}
-                      className="opacity-80"
+                      className="z-10 opacity-90"
                     />
                   </div>
+
                   <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
                     Welcome to Prompt Clarity Analyzer
                   </h2>
@@ -219,11 +218,23 @@ export default function PromptClarityAnalyzer() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="border-green-500">
-                <CardContent className="space-y-4">
-                  <p className="text-green-700 font-semibold">
-                    Analysis complete ✅
-                  </p>
+              <p className="text-sm text-muted-foreground italic px-1">
+                <TypingEffect text="Analyzing structure, clarity, and ambiguity..." />
+              </p>
+
+              <Card className="bg-white/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-xl">
+                <CardContent className="space-y-6 p-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-green-700 font-semibold">
+                      Analysis complete ✅
+                    </p>
+                    {result.clarityScore >= 90 && (
+                      <div className="text-2xl animate-pulse">🤖🎉</div>
+                    )}
+                    {result.clarityScore < 90 && (
+                      <div className="text-2xl animate-pulse">🤖🧐</div>
+                    )}
+                  </div>
 
                   {result.clarityScore && (
                     <div className="flex items-center gap-2">
@@ -252,7 +263,7 @@ export default function PromptClarityAnalyzer() {
                   {result.suggestions?.length > 0 && (
                     <div>
                       <strong>Suggestions for Improvement:</strong>
-                      <ul className="list-disc ml-6">
+                      <ul className="list-disc ml-6 space-y-1">
                         {result.suggestions.map((s, i) => (
                           <TypingEffect key={i} text={s} />
                         ))}
