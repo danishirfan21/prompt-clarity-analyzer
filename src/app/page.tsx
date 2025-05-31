@@ -79,11 +79,18 @@ export default function PromptClarityAnalyzer() {
     'Summarize this meeting transcript for internal docs...',
     'Convert this requirement into a dev-ready prompt...',
   ];
+  const buttonTextOptions = [
+    '✨ Clarify Prompt',
+    '🧠 Analyze Prompt',
+    '🔍 Run Check',
+  ];
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [ctaIndex, setCtaIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex((i) => (i + 1) % placeholderOptions.length);
+      setCtaIndex((i) => (i + 1) % buttonTextOptions.length);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -119,6 +126,7 @@ export default function PromptClarityAnalyzer() {
   return (
     <ShellLayout>
       <div className="relative overflow-hidden">
+        {/* Animated glowing blobs */}
         <motion.div
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
           transition={{ repeat: Infinity, duration: 12 }}
@@ -133,22 +141,25 @@ export default function PromptClarityAnalyzer() {
         <div className="space-y-6 max-w-2xl mx-auto py-6">
           <TypingHeading text="Prompt Clarity Analyzer" />
 
+          {/* Input */}
           <div className="space-y-4">
-            <div className="relative rounded-xl overflow-hidden p-[2px] bg-gradient-to-br from-blue-300 to-pink-300 shadow-inner">
+            <div className="relative rounded-xl overflow-hidden p-[2px] bg-gradient-to-br from-blue-300 to-pink-300 shadow-inner hover:shadow-xl transition-all duration-300">
               <Textarea
                 placeholder={placeholderOptions[placeholderIndex]}
-                className="min-h-[120px] bg-white/70 backdrop-blur-md text-gray-800 placeholder:text-gray-400 rounded-xl px-4 py-3 border-none focus:outline-none"
+                className="min-h-[120px] bg-white/70 backdrop-blur-md text-gray-800 placeholder:text-gray-400 rounded-xl px-4 py-3 border-none focus:outline-none hover:ring-1 hover:ring-blue-400 transition-all"
                 value={visiblePrompt}
                 onChange={handlePromptTyping}
               />
             </div>
 
+            {/* Feedback while analyzing */}
             {loading && (
               <div className="text-sm text-gray-500 italic animate-pulse text-center">
                 🤖 Thinking... polishing your prompt.
               </div>
             )}
 
+            {/* Button */}
             <Button
               onClick={handleAnalyze}
               disabled={loading || !prompt.trim()}
@@ -161,13 +172,14 @@ export default function PromptClarityAnalyzer() {
                     Analyzing...
                   </>
                 ) : (
-                  'Analyze'
+                  buttonTextOptions[ctaIndex]
                 )}
               </span>
               <span className="absolute inset-0 bg-white/20 blur-md opacity-0 group-hover:opacity-10 transition" />
             </Button>
           </div>
 
+          {/* Empty State */}
           {!loading && !result && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -187,11 +199,8 @@ export default function PromptClarityAnalyzer() {
                       className="z-10 opacity-90"
                     />
                   </div>
-                  <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
+                  <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
                     Welcome to Prompt Clarity Analyzer
-                  </h2>
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                    🧠 Nothing analyzed yet
                   </h2>
                   <p className="text-sm text-gray-500">
                     Feed me a prompt — I’ll make it crystal clear.
@@ -201,20 +210,28 @@ export default function PromptClarityAnalyzer() {
             </motion.div>
           )}
 
+          {/* Error State */}
           {!loading && result?.error && (
-            <Card className="bg-red-50 border border-red-200 shadow-md rounded-xl">
-              <CardContent className="text-center py-6">
-                <div className="text-3xl mb-2">😓</div>
-                <p className="text-lg font-semibold text-red-600">
-                  Something went wrong
-                </p>
-                <p className="text-sm text-red-400 mt-1">
-                  Try rephrasing the prompt or refreshing the page.
-                </p>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            >
+              <Card className="bg-red-50 border border-red-200 shadow-md rounded-xl">
+                <CardContent className="text-center py-6">
+                  <div className="text-3xl mb-2">😓</div>
+                  <p className="text-lg font-semibold text-red-600">
+                    Something went wrong
+                  </p>
+                  <p className="text-sm text-red-400 mt-1">
+                    Try rephrasing the prompt or refreshing the page.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
 
+          {/* Result */}
           {!loading && result && !result.error && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
