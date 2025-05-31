@@ -8,11 +8,12 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePromptAnalyzer } from '@/hooks/usePromptAnalyzer';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import Lottie from 'lottie-react';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { Howl } from 'howler';
-import robotHead from '@/assets/robot-head.png';
+import aiAssistantAnimation from '@/assets/ai-assistant.json';
+
 
 function TypingHeading({ text }: { text: string }) {
   const [display, setDisplay] = useState('');
@@ -103,6 +104,14 @@ export default function PromptClarityAnalyzer() {
     }
   };
 
+  function AnimatedBot() {
+    return (
+      <div className="w-40 mx-auto">
+        <Lottie animationData={aiAssistantAnimation} loop={true} />
+      </div>
+    );
+  }
+
   const handlePromptTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     new Howl({ src: ['/sounds/keystroke.mp3'], volume: 0.1 }).play();
@@ -114,7 +123,15 @@ export default function PromptClarityAnalyzer() {
 
   useEffect(() => {
     if (result && !loading && !result.error) {
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      // confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      const emojis = ['💡', '🧠', '🤖'];
+      for (let i = 0; i < 30; i++) {
+        const emoji = document.createElement('div');
+        emoji.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.className = 'absolute text-2xl animate-bounce-slow';
+        document.body.appendChild(emoji);
+      }
+
       new Howl({ src: ['/sounds/success.mp3'], volume: 0.3 }).play();
       toast.success('Analysis complete ✅');
     }
@@ -190,15 +207,10 @@ export default function PromptClarityAnalyzer() {
               <Card className="bg-white/10 backdrop-blur-lg border border-white/10 shadow-xl transition hover:shadow-2xl hover:scale-[1.01]">
                 <CardContent className="text-center py-16 space-y-4">
                   <div className="relative flex justify-center items-center">
-                    <div className="absolute w-20 h-20 rounded-full bg-purple-300 blur-3xl opacity-20 animate-ping"></div>
-                    <Image
-                      src={robotHead}
-                      alt="Robot"
-                      width={64}
-                      height={64}
-                      className="z-10 opacity-90"
-                    />
+                    <div className="absolute w-24 h-24 rounded-full bg-purple-300 blur-3xl opacity-30 animate-ping"></div>
+                    <AnimatedBot />
                   </div>
+
                   <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
                     Welcome to Prompt Clarity Analyzer
                   </h2>
