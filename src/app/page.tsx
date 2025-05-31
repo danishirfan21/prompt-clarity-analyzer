@@ -35,9 +35,26 @@ function TypingHeading({ text }: { text: string }) {
   );
 }
 
+function TypingEffect({ text }: { text: string }) {
+  const [display, setDisplay] = useState('');
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplay((prev) => text.slice(0, i + 1));
+      i++;
+      if (i === text.length) clearInterval(interval);
+    }, 10);
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <li>{display}</li>;
+}
+
+
 export default function PromptClarityAnalyzer() {
   const [prompt, setPrompt] = useState('');
   const { analyze, result, loading } = usePromptAnalyzer();
+  const [visiblePrompt, setVisiblePrompt] = useState(''); // this is shown in the UI
 
   const handleAnalyze = () => {
     if (prompt.trim()) {
@@ -49,7 +66,25 @@ export default function PromptClarityAnalyzer() {
 
       analyze(prompt);
     }
-  };  
+  };
+
+  const handlePromptTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+
+    // 1. Play keystroke sound
+    const key = new Howl({
+      src: ['/sounds/keystroke.mp3'],
+      volume: 0.1,
+    });
+    key.play();
+
+    // 2. Smooth delayed typing buffer
+    setVisiblePrompt(newText); // shows in textarea
+    setTimeout(() => {
+      setPrompt(newText); // updates the "actual" input used for analysis
+    }, 300); // adjust delay as needed
+  };
+  
 
   useEffect(() => {
     if (result && !loading && !result.error) {
@@ -68,7 +103,7 @@ export default function PromptClarityAnalyzer() {
       volume: 0.15,
     });
     hover.play();
-  };  
+  };
 
   return (
     <ShellLayout>
@@ -92,8 +127,8 @@ export default function PromptClarityAnalyzer() {
             <Textarea
               placeholder="Paste your AI agent prompt here..."
               className="min-h-[120px] animate-pulse placeholder:italic"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              value={visiblePrompt}
+              onChange={handlePromptTyping}
             />
 
             <Button
@@ -191,9 +226,16 @@ export default function PromptClarityAnalyzer() {
                   </p>
 
                   {result.clarityScore && (
-                    <p>
-                      <strong>Clarity Score:</strong> {result.clarityScore}/100
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600 font-bold text-lg">
+                        🧠 Clarity: {result.clarityScore}/100
+                      </span>
+                      {result.clarityScore >= 90 && (
+                        <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full animate-bounce">
+                          💎 Crystal Clear
+                        </span>
+                      )}
+                    </div>
                   )}
 
                   {result.ambiguities?.length > 0 && (
@@ -212,7 +254,7 @@ export default function PromptClarityAnalyzer() {
                       <strong>Suggestions for Improvement:</strong>
                       <ul className="list-disc ml-6">
                         {result.suggestions.map((s, i) => (
-                          <li key={i}>{s}</li>
+                          <TypingEffect key={i} text={s} />
                         ))}
                       </ul>
                     </div>
