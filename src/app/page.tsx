@@ -4,20 +4,18 @@ import ShellLayout from '@/components/layout/ShellLayout';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePromptAnalyzer } from '@/hooks/usePromptAnalyzer';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import robotHead from '@/assets/robot-head.png';  
+import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { Howl } from 'howler';
-
+import robotHead from '@/assets/robot-head.png';
 
 function TypingHeading({ text }: { text: string }) {
   const [display, setDisplay] = useState('');
-
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
@@ -40,74 +38,86 @@ function TypingEffect({ text }: { text: string }) {
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
-      setDisplay((prev) => text.slice(0, i + 1));
+      setDisplay(text.slice(0, i + 1));
       i++;
       if (i === text.length) clearInterval(interval);
-    }, 10);
+    }, 15);
     return () => clearInterval(interval);
   }, [text]);
 
   return <li>{display}</li>;
 }
 
+function CollapsibleSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="border rounded-xl overflow-hidden bg-white/70 dark:bg-black/30">
+      <div
+        className="bg-gray-100 dark:bg-gray-800 cursor-pointer px-4 py-2 font-semibold text-sm"
+        onClick={() => setOpen(!open)}
+      >
+        {title} {open ? '▾' : '▸'}
+      </div>
+      {open && <div className="px-4 py-2 space-y-2">{children}</div>}
+    </div>
+  );
+}
 
 export default function PromptClarityAnalyzer() {
   const [prompt, setPrompt] = useState('');
   const { analyze, result, loading } = usePromptAnalyzer();
-  const [visiblePrompt, setVisiblePrompt] = useState(''); // this is shown in the UI
+  const [visiblePrompt, setVisiblePrompt] = useState('');
+
+  const placeholderOptions = [
+    'Rewrite this sales pitch to be more persuasive...',
+    'Summarize this meeting transcript for internal docs...',
+    'Convert this requirement into a dev-ready prompt...',
+  ];
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((i) => (i + 1) % placeholderOptions.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAnalyze = () => {
     if (prompt.trim()) {
-      const ping = new Howl({
-        src: ['/sounds/ping.wav'],
-        volume: 0.3,
-      });
-      ping.play();
-
+      toast.message('Analyzing your prompt...');
+      new Howl({ src: ['/sounds/ping.wav'], volume: 0.3 }).play();
       analyze(prompt);
     }
   };
 
   const handlePromptTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
-
-    // 1. Play keystroke sound
-    const key = new Howl({
-      src: ['/sounds/keystroke.mp3'],
-      volume: 0.1,
-    });
-    key.play();
-
-    // 2. Smooth delayed typing buffer
-    setVisiblePrompt(newText); // shows in textarea
+    new Howl({ src: ['/sounds/keystroke.mp3'], volume: 0.1 }).play();
+    setVisiblePrompt(newText);
     setTimeout(() => {
-      setPrompt(newText); // updates the "actual" input used for analysis
-    }, 300); // adjust delay as needed
+      setPrompt(newText);
+    }, 300);
   };
-  
 
   useEffect(() => {
     if (result && !loading && !result.error) {
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      const successSound = new Howl({
-        src: ['/sounds/success.mp3'],
-        volume: 0.3,
-      });
-      successSound.play(); // 🔊 reward sound
+      new Howl({ src: ['/sounds/success.mp3'], volume: 0.3 }).play();
+      toast.success('Analysis complete ✅');
+    }
+    if (result?.error) {
+      toast.error('Something went wrong. Try again.');
     }
   }, [loading, result]);
 
-  const playHoverSound = () => {
-    const hover = new Howl({
-      src: ['/sounds/hover.mp3'],
-      volume: 0.15,
-    });
-    hover.play();
-  };
-
   return (
     <ShellLayout>
-      {/* Hero Glow Logo */}
       <div className="relative overflow-hidden">
         <motion.div
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
@@ -124,40 +134,40 @@ export default function PromptClarityAnalyzer() {
           <TypingHeading text="Prompt Clarity Analyzer" />
 
           <div className="space-y-4">
-            <div className="p-[1px] rounded-xl bg-gradient-to-br from-purple-400/50 to-pink-400/50">
+            <div className="relative rounded-xl overflow-hidden p-[2px] bg-gradient-to-br from-blue-300 to-pink-300 shadow-inner">
               <Textarea
-                placeholder="Paste your AI agent prompt here..."
-                className="min-h-[120px] bg-white/70 backdrop-blur-md text-gray-700 placeholder:italic w-full p-4 rounded-xl border-none outline-none"
+                placeholder={placeholderOptions[placeholderIndex]}
+                className="min-h-[120px] bg-white/70 backdrop-blur-md text-gray-800 placeholder:text-gray-400 rounded-xl px-4 py-3 border-none focus:outline-none"
                 value={visiblePrompt}
                 onChange={handlePromptTyping}
               />
             </div>
 
+            {loading && (
+              <div className="text-sm text-gray-500 italic animate-pulse text-center">
+                🤖 Thinking... polishing your prompt.
+              </div>
+            )}
+
             <Button
               onClick={handleAnalyze}
-              onMouseEnter={playHoverSound}
               disabled={loading || !prompt.trim()}
-              className="relative overflow-hidden w-full sm:w-fit px-6 py-2 rounded-lg font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600 hover:from-purple-500 hover:to-pink-500 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out before:absolute before:inset-0 before:bg-white/20 before:blur-lg before:opacity-0 hover:before:opacity-10"
+              className="group relative overflow-hidden w-full sm:w-fit px-6 py-2 rounded-lg font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-300 ease-in-out hover:scale-105"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze'
-              )}
+              <span className="relative z-10 flex items-center">
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                    Analyzing...
+                  </>
+                ) : (
+                  'Analyze'
+                )}
+              </span>
+              <span className="absolute inset-0 bg-white/20 blur-md opacity-0 group-hover:opacity-10 transition" />
             </Button>
           </div>
 
-          {/* Loading Skeleton */}
-          {loading && (
-            <div className="text-center text-sm text-gray-500 italic animate-pulse">
-              🤖 Thinking about your prompt...
-            </div>
-          )}
-
-          {/* Empty state */}
           {!loading && !result && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -177,7 +187,6 @@ export default function PromptClarityAnalyzer() {
                       className="z-10 opacity-90"
                     />
                   </div>
-
                   <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
                     Welcome to Prompt Clarity Analyzer
                   </h2>
@@ -189,52 +198,34 @@ export default function PromptClarityAnalyzer() {
                   </p>
                 </CardContent>
               </Card>
-
-              {/* Animated background bubble */}
-              <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ repeat: Infinity, duration: 10 }}
-                className="absolute top-[-40px] right-[-40px] w-72 h-72 bg-indigo-100 rounded-full opacity-30 blur-3xl z-[-1]"
-              />
             </motion.div>
           )}
 
-          {/* Error */}
           {!loading && result?.error && (
-            <Card className="bg-red-50 border-red-300 shadow-sm">
-              <CardContent className="text-red-700 font-medium py-6 text-center space-y-2">
-                <p>🚨 Something went wrong.</p>
-                <p className="text-sm text-red-500">
+            <Card className="bg-red-50 border border-red-200 shadow-md rounded-xl">
+              <CardContent className="text-center py-6">
+                <div className="text-3xl mb-2">😓</div>
+                <p className="text-lg font-semibold text-red-600">
+                  Something went wrong
+                </p>
+                <p className="text-sm text-red-400 mt-1">
                   Try rephrasing the prompt or refreshing the page.
                 </p>
               </CardContent>
             </Card>
           )}
 
-          {/* Analysis Result */}
           {!loading && result && !result.error && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <p className="text-sm text-muted-foreground italic px-1">
-                <TypingEffect text="Analyzing structure, clarity, and ambiguity..." />
-              </p>
-
               <Card className="bg-white/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-xl">
                 <CardContent className="space-y-6 p-6">
-                  <div className="flex items-center justify-between">
-                    <p className="text-green-700 font-semibold">
-                      Analysis complete ✅
-                    </p>
-                    {result.clarityScore >= 90 && (
-                      <div className="text-2xl animate-pulse">🤖🎉</div>
-                    )}
-                    {result.clarityScore < 90 && (
-                      <div className="text-2xl animate-pulse">🤖🧐</div>
-                    )}
-                  </div>
+                  <p className="text-green-700 font-semibold">
+                    Analysis complete ✅
+                  </p>
 
                   {result.clarityScore && (
                     <div className="flex items-center gap-2">
@@ -250,25 +241,23 @@ export default function PromptClarityAnalyzer() {
                   )}
 
                   {result.ambiguities?.length > 0 && (
-                    <div>
-                      <strong>Ambiguities:</strong>
+                    <CollapsibleSection title="⚠️ Ambiguities">
                       <ul className="list-disc ml-6">
                         {result.ambiguities.map((a, i) => (
                           <li key={i}>{a}</li>
                         ))}
                       </ul>
-                    </div>
+                    </CollapsibleSection>
                   )}
 
                   {result.suggestions?.length > 0 && (
-                    <div>
-                      <strong>Suggestions for Improvement:</strong>
-                      <ul className="list-disc ml-6 space-y-1">
+                    <CollapsibleSection title="🛠️ Suggestions for Improvement">
+                      <ul className="list-disc ml-6">
                         {result.suggestions.map((s, i) => (
                           <TypingEffect key={i} text={s} />
                         ))}
                       </ul>
-                    </div>
+                    </CollapsibleSection>
                   )}
                 </CardContent>
               </Card>
