@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 export interface PromptAnalysisResult {
+  interpretations: any;
   clarityScore?: number;
   ambiguities?: string[];
   suggestions?: string[];

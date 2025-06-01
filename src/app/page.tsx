@@ -13,6 +13,10 @@ import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { Howl } from 'howler';
 import aiAssistantAnimation from '@/assets/ai-assistant.json';
+import { ClarityScoreCard } from '@/components/analyzer/ClarityScoreCard';
+import { InterpretationsPanel } from '@/components/analyzer/InterpretationsPanel';
+import { RiskWarning } from '@/components/analyzer/RiskWarning';
+import { AmbiguityList } from '@/components/analyzer/AmbiguityList';
 
 
 function TypingHeading({ text }: { text: string }) {
@@ -250,7 +254,16 @@ export default function PromptClarityAnalyzer() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="bg-white/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-xl">
+              <ClarityScoreCard score={result.clarityScore} />
+              <InterpretationsPanel
+                junior={result.interpretations.junior}
+                engineer={result.interpretations.engineer}
+                lead={result.interpretations.lead}
+              />
+              <RiskWarning text={result.riskIfUsed} />
+              <AmbiguityList terms={result.ambiguousTerms} />
+
+              {/* <Card className="bg-white/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-xl">
                 <CardContent className="space-y-6 p-6">
                   <p className="text-green-700 font-semibold">
                     Analysis complete ✅
@@ -289,7 +302,7 @@ export default function PromptClarityAnalyzer() {
                     </CollapsibleSection>
                   )}
                 </CardContent>
-              </Card>
+              </Card> */}
             </motion.div>
           )}
         </div>
