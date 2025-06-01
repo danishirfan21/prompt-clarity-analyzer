@@ -248,24 +248,24 @@ export default function PromptClarityAnalyzer() {
               </Card>
             </motion.div>
           )}
+          <div id="results" className="space-y-6 mt-10">
+            {/* Result */}
+            {!loading && result && !result.error && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ClarityScoreCard score={result.clarityScore} />
+                <InterpretationsPanel
+                  junior={result.interpretations.junior}
+                  engineer={result.interpretations.engineer}
+                  lead={result.interpretations.lead}
+                />
+                <RiskWarning text={result.riskIfUsed} />
+                <AmbiguityList terms={result.ambiguousTerms} />
 
-          {/* Result */}
-          {!loading && result && !result.error && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ClarityScoreCard score={result.clarityScore} />
-              <InterpretationsPanel
-                junior={result.interpretations.junior}
-                engineer={result.interpretations.engineer}
-                lead={result.interpretations.lead}
-              />
-              <RiskWarning text={result.riskIfUsed} />
-              <AmbiguityList terms={result.ambiguousTerms} />
-
-              {/* <Card className="bg-white/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-xl">
+                {/* <Card className="bg-white/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-xl">
                 <CardContent className="space-y-6 p-6">
                   <p className="text-green-700 font-semibold">
                     Analysis complete ✅
@@ -305,8 +305,9 @@ export default function PromptClarityAnalyzer() {
                   )}
                 </CardContent>
               </Card> */}
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
     </ShellLayout>
