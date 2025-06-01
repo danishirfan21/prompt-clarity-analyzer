@@ -105,6 +105,8 @@ export default function PromptClarityAnalyzer() {
       toast.message('Analyzing your prompt...');
       new Howl({ src: ['/sounds/ping.wav'], volume: 0.3 }).play();
       analyze(prompt);
+      const el = document.getElementById('results');
+      el?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
